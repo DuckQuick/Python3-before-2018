@@ -1,0 +1,147 @@
+# -*- coding: utf-8 -*-
+"""
+@protect name:Contra
+@author:DuckQuick
+@email: m18834164553@163.com
+@time:2018-10-5
+@github ID:DuckQuick
+"""
+"""
+pygame.display.get_active() #检查是否显示在屏幕上而没有被隐藏和最小化
+pygame.display.iconify() #最小化surface窗口
+"""
+import sys
+import pygame
+
+
+class Player(pygame.sprite.Sprite):
+	
+	def __init__(self):
+		'''
+		主要参数
+		'''
+		super().__init__()
+		self.bitcode = 3
+		self.height = 50
+		self.width = 30
+		self.surf = pygame.Surface((self.width,self.height))
+		self.surf.fill((255,255,255))
+		self.pos = self.rect = self.surf.get_rect()
+
+	def sport(self,key):
+		'''
+		键盘按键移动模块
+		'''
+		if key[pygame.K_a] or key[pygame.K_LEFT]:
+			self.pos.move_ip(-5,0)
+		if key[pygame.K_s] or key[pygame.K_DOWN]:
+			self.pos.move_ip(0,5)
+		if key[pygame.K_w] or key[pygame.K_UP]:
+			self.pos.move_ip(0,-5)
+		if key[pygame.K_d] or key[pygame.K_RIGHT]:
+			self.pos.move_ip(5,0)
+
+		if self.pos.left < 0:
+			self.pos.left = 0
+		elif self.pos.right > screen_width:
+			self.pos.right = screen_width
+		if self.pos.top <= 0:
+			self.pos.top = 0
+		elif self.pos.bottom >= screen_height:
+			self.pos.bottom = screen_height
+
+	def life(self,bitcode,alive):
+		'''
+		生命模块
+		'''
+		if alive == False and bitcode > 0:
+			self.pos.move_ip(self.width + 20,screen_height - self.height)
+		elif alive == True and bitcode > 0:
+			pass
+		else:
+			pass
+
+class Enemy(pygame.sprite.Sprite):
+	def __init__(self):
+		super().__init__()
+		self.height = 50
+		self.width = 30
+		self.surf = pygame.Surface((self.width,self.height))
+		self.surf.fill((255,255,255))
+		self.pos = self.rect =  self.surf.get_rect()
+
+	def sport(self):
+		self.pos.move_ip(1,0)
+		if self.pos.right < 0:
+			self.kill()
+
+'''
+主函数入口
+'''
+pygame.init()
+#pygame.display.init()
+if pygame.display.get_init():
+	#初始设置
+	clock = pygame.time.Clock()
+
+	screen_height = 300
+	screen_width = 500
+    
+	pygame.display.set_caption('Game')
+    #pygame.display.set_icon() #设置窗口执行时的图标,32*32像素
+	screen = pygame.display.set_mode((screen_width,screen_height))
+
+	ADDENEMYT = pygame.USEREVENT + 1
+	pygame.time.set_timer(ADDENEMYT,2500) #250毫秒触发
+
+	hero = Player()
+	hero.alive = False
+
+	enemy_group = pygame.sprite.Group()
+	all_sprites = pygame.sprite.Group()
+	all_sprites.add(hero)
+
+	while True:
+		#事件相关
+		for events in pygame.event.get():
+			#按键设置
+			if events.type == pygame.QUIT:
+				pygame.quit()
+				sys.exit(0)
+			elif events.type == pygame.KEYDOWN:    
+				if events.key == pygame.K_ESCAPE:
+					pygame.quit()
+					sys.exit(0)
+			elif events.type == ADDENEMYT:
+				new_enemy = Enemy()
+				enemy_group.add(new_enemy)
+				all_sprites.add(new_enemy) 
+		#屏幕相关
+		screen.fill((0,0,0))
+		#英雄相关
+		hero.life(hero.bitcode,hero.alive)
+		if hero.alive == False and hero.bitcode > 0:
+			hero.alive = True
+		key = pygame.key.get_pressed()
+		hero.sport(key)
+		screen.blit(hero.surf,hero.pos)
+		#敌人相关
+		for enemy in enemy_group:
+			enemy.sport()
+			screen.blit(enemy.surf,enemy.pos)
+		#撞击相关
+		if pygame.sprite.spritecollideany(hero,enemy_group):
+			hero.bitcode = hero.bitcode - 1
+			if hero.bitcode == 0: #未知执行
+				hero.kill()
+			elif hero.bitcode > 0:
+				hero.alive = False
+				hero.life(hero.bitcode,hero.alive)
+			else:
+				pygame.quit()
+				sys.exit(0)
+		#总系统相关
+		pygame.display.update()
+		clock.tick(40)
+
+pygame.quit()
