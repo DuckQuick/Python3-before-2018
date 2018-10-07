@@ -13,6 +13,10 @@ pygame.display.iconify() #最小化surface窗口
 import sys
 import pygame
 
+LEFT = -1
+RIGHT = 1
+UP = 2
+DOWN = -2
 
 class Player(pygame.sprite.Sprite):
 	
@@ -24,6 +28,7 @@ class Player(pygame.sprite.Sprite):
 		self.bitcode = 3
 		self.height = 50
 		self.width = 30
+		self.face = RIGHT
 		self.surf = pygame.Surface((self.width,self.height))
 		self.surf.fill((255,255,255))
 		self.pos = self.rect = self.surf.get_rect()
@@ -32,14 +37,21 @@ class Player(pygame.sprite.Sprite):
 		'''
 		键盘按键移动模块
 		'''
+		global jump_time
+		global drop_time
 		if key[pygame.K_a] or key[pygame.K_LEFT]:
 			self.pos.move_ip(-5,0)
+			self.face = LEFT
 		if key[pygame.K_s] or key[pygame.K_DOWN]:
-			self.pos.move_ip(0,5)
+			self.face = DOWN
 		if key[pygame.K_w] or key[pygame.K_UP]:
-			self.pos.move_ip(0,-5)
+			self.face = UP
 		if key[pygame.K_d] or key[pygame.K_RIGHT]:
 			self.pos.move_ip(5,0)
+			self.face = RIGHT
+		if key[pygame.K_k] and jump_time == 0 and drop_time == 0:
+			jump_time = 7
+			drop_time = jump_time
 
 		if self.pos.left < 0:
 			self.pos.left = 0
@@ -116,13 +128,11 @@ if pygame.display.get_init():
 	pygame.display.set_caption('Game')
     #pygame.display.set_icon() #设置窗口执行时的图标,32*32像素
 	Map.background()
-	global add_bullet
-	add_bullet = 0
 
 	ADDENEMYT = pygame.USEREVENT + 1
 	pygame.time.set_timer(ADDENEMYT,2500) #2500毫秒触发
-	SHOOTING = pygame.USEREVENT + 2
-	pygame.time.set_timer(SHOOTING,1)
+	jump_time = 0
+	drop_time = 0
 
 	hero = Player()
 	hero.alive = False
@@ -138,20 +148,18 @@ if pygame.display.get_init():
 			#按键设置
 			if events.type == pygame.QUIT:
 				Done = False
-			elif events.type == pygame.KEYDOWN:    
+			if events.type == pygame.KEYDOWN:    
 				if events.key == pygame.K_ESCAPE:
 					Done = False
-				elif events.key == pygame.K_j:
-					add_bullet = 1
-			elif events.type == ADDENEMYT:
+				if events.key == pygame.K_j:
+					new_bullet = Bullet()
+					bullet_group.add(new_bullet)
+					all_sprites.add(new_bullet)
+			if events.type == ADDENEMYT:
 				new_enemy = Enemy()
 				enemy_group.add(new_enemy)
-				all_sprites.add(new_enemy) 
-			elif add_bullet == 1 and events.type == SHOOTING:
-				new_bullet = Bullet()
-				bullet_group.add(new_bullet)
-				all_sprites.add(new_bullet)
-				add_bullet = 0
+				all_sprites.add(new_enemy)
+
 		#屏幕刷新
 		screen.blit(background,(0,0))
 		#英雄更新
@@ -180,6 +188,14 @@ if pygame.display.get_init():
 				hero.life(hero.bitcode,hero.alive)
 			else:
 				Done = False
+		#跳跃判定
+		if jump_time > 0 and drop_time != 0:
+			hero.pos.move_ip(0,-7)
+			jump_time = jump_time - 1
+		if drop_time > 0 and jump_time == 0:
+			hero.pos.move_ip(0,7)
+			drop_time = drop_time - 1
+
 		#总系统相关
 		pygame.display.update()
 		clock.tick(40)
