@@ -68,12 +68,40 @@ class Enemy(pygame.sprite.Sprite):
 		self.width = 30
 		self.surf = pygame.Surface((self.width,self.height))
 		self.surf.fill((255,255,255))
-		self.pos = self.rect =  self.surf.get_rect()
+		self.pos = self.rect = self.surf.get_rect(center=(500,200))
 
 	def sport(self):
-		self.pos.move_ip(1,0)
+		self.pos.move_ip(-1,0)
 		if self.pos.right < 0:
 			self.kill()
+
+class Map(pygame.sprite.Sprite):
+	def __init__(self):
+		super().__init__()
+
+	def background():
+		global screen
+		global screen_width
+		global screen_height
+		global background
+		screen_width = 500
+		screen_height = 300
+		screen = pygame.display.set_mode((screen_width,screen_height))
+		background = pygame.Surface(screen.get_size())
+		background.fill((135,206,250))
+
+class Bullet(pygame.sprite.Sprite):
+	def __init__(self):
+		super().__init__()
+		self.image = pygame.image.load('bullet01.bmp').convert()
+		#asurf = pygame.image.load(os.path.join('data', 'bla.png'))
+		self.image.set_colorkey((255,255,255),pygame.RLEACCEL)
+		self.pos = self.rect = self.image.get_rect(center=(hero.pos.left,hero.pos.top+20))
+		self.speed = 2
+
+	def sport(self):
+		self.pos.move_ip(self.speed, 0)
+		screen.blit(bullet.image,bullet.pos)
 
 '''
 主函数入口
@@ -83,53 +111,66 @@ pygame.init()
 if pygame.display.get_init():
 	#初始设置
 	clock = pygame.time.Clock()
-
-	screen_height = 300
-	screen_width = 500
+	Done = True
     
 	pygame.display.set_caption('Game')
     #pygame.display.set_icon() #设置窗口执行时的图标,32*32像素
-	screen = pygame.display.set_mode((screen_width,screen_height))
+	Map.background()
+	global add_bullet
+	add_bullet = 0
 
 	ADDENEMYT = pygame.USEREVENT + 1
-	pygame.time.set_timer(ADDENEMYT,2500) #250毫秒触发
+	pygame.time.set_timer(ADDENEMYT,2500) #2500毫秒触发
+	SHOOTING = pygame.USEREVENT + 2
+	pygame.time.set_timer(SHOOTING,1)
 
 	hero = Player()
 	hero.alive = False
 
 	enemy_group = pygame.sprite.Group()
+	bullet_group = pygame.sprite.Group()
 	all_sprites = pygame.sprite.Group()
 	all_sprites.add(hero)
 
-	while True:
+	while Done:
 		#事件相关
 		for events in pygame.event.get():
 			#按键设置
 			if events.type == pygame.QUIT:
-				pygame.quit()
-				sys.exit(0)
+				Done = False
 			elif events.type == pygame.KEYDOWN:    
 				if events.key == pygame.K_ESCAPE:
-					pygame.quit()
-					sys.exit(0)
+					Done = False
+				elif events.key == pygame.K_j:
+					add_bullet = 1
 			elif events.type == ADDENEMYT:
 				new_enemy = Enemy()
 				enemy_group.add(new_enemy)
 				all_sprites.add(new_enemy) 
-		#屏幕相关
-		screen.fill((0,0,0))
-		#英雄相关
+			elif add_bullet == 1 and events.type == SHOOTING:
+				new_bullet = Bullet()
+				bullet_group.add(new_bullet)
+				all_sprites.add(new_bullet)
+				add_bullet = 0
+		#屏幕刷新
+		screen.blit(background,(0,0))
+		#英雄更新
 		hero.life(hero.bitcode,hero.alive)
 		if hero.alive == False and hero.bitcode > 0:
 			hero.alive = True
 		key = pygame.key.get_pressed()
 		hero.sport(key)
 		screen.blit(hero.surf,hero.pos)
-		#敌人相关
+		#敌人更新
 		for enemy in enemy_group:
 			enemy.sport()
 			screen.blit(enemy.surf,enemy.pos)
-		#撞击相关
+		#子弹更新
+		for bullet in bullet_group:
+			bullet.sport()
+			if bullet.pos.left < 0:
+				bullet.kill()
+		#撞击判定
 		if pygame.sprite.spritecollideany(hero,enemy_group):
 			hero.bitcode = hero.bitcode - 1
 			if hero.bitcode == 0: #未知执行
@@ -138,10 +179,10 @@ if pygame.display.get_init():
 				hero.alive = False
 				hero.life(hero.bitcode,hero.alive)
 			else:
-				pygame.quit()
-				sys.exit(0)
+				Done = False
 		#总系统相关
 		pygame.display.update()
 		clock.tick(40)
 
 pygame.quit()
+sys.exit(0)
