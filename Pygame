@@ -18,6 +18,7 @@ RIGHT = -1
 UP = 1
 DOWN = -1
 FLAT = 0
+Bitcode = 0
 
 class Player(pygame.sprite.Sprite):
 	
@@ -26,7 +27,6 @@ class Player(pygame.sprite.Sprite):
 		初始化主要参数
 		'''
 		super().__init__()
-		self.bitcode = 3 #投币
 		self.height = 50 #人物高度
 		self.width = 30	#人物宽度
 		self.face_left = RIGHT #人物面对方向
@@ -88,13 +88,13 @@ class Player(pygame.sprite.Sprite):
 		elif self.pos.bottom >= screen_height:
 			self.pos.bottom = screen_height
 
-	def life(self,bitcode,alive):
+	def life(self,alive):
 		'''
 		生命模块(未完成)
 		'''
-		if alive == False and bitcode > 0:
+		if alive == False and Bitcode > 0:
 			self.pos.move_ip(-hero.pos.left + 20,screen_height)
-		elif alive == True and bitcode > 0:
+		elif alive == True and Bitcode > 0:
 			pass
 		else:
 			pass
@@ -175,6 +175,14 @@ class Bullet(pygame.sprite.Sprite):
 		self.pos.move_ip(self.speed_left,self.speed_top)
 		screen.blit(bullet.image,bullet.pos)
 
+class Start(pygame.sprite.Sprite):
+	def __init__(self):
+		super().__init__()
+		self.text = start_font.render("Press q to play",False,(0,0,0))
+
+	def sport(self):
+		screen.blit(self.text,(screen_width / 2,screen_height / 2))
+		
 '''
 主函数入口
 '''
@@ -182,6 +190,7 @@ pygame.init()
 #pygame.display.init()
 if pygame.display.get_init():
 	#初始设置
+	start_font = pygame.font.SysFont('arial',18, False, False)
 	clock = pygame.time.Clock()
 	Done = True
     
@@ -211,50 +220,57 @@ if pygame.display.get_init():
 			if events.type == pygame.KEYDOWN:
 				if events.key == pygame.K_ESCAPE:
 					Done = False
-				if events.key == pygame.K_j:
-					new_bullet = Bullet()
-					bullet_group.add(new_bullet)
-					all_sprites.add(new_bullet)
-			if events.type == ADDENEMYT:
-				new_enemy = Enemy()
-				enemy_group.add(new_enemy)
-				all_sprites.add(new_enemy)
+				if Bitcode == 0:
+					if events.key == pygame.K_q:
+						Bitcode = 3
+				if Bitcode > 0:
+					if events.key == pygame.K_j:
+						new_bullet = Bullet()
+						bullet_group.add(new_bullet)
+						all_sprites.add(new_bullet)
+			if Bitcode > 0:
+				if events.type == ADDENEMYT:
+					new_enemy = Enemy()
+					enemy_group.add(new_enemy)
+					all_sprites.add(new_enemy)
 
 		#屏幕刷新
-		screen.blit(background,(0,0))
-		#英雄更新
-		hero.life(hero.bitcode,hero.alive)
-		if hero.alive == False and hero.bitcode > 0:
-			hero.alive = True
-		key = pygame.key.get_pressed()
-		hero.sport(key)
-		screen.blit(hero.image,hero.pos)
-		#敌人更新
-		for enemy in enemy_group:
-			enemy.sport()
-			screen.blit(enemy.surf,enemy.pos)
-		#子弹更新
-		for bullet in bullet_group:
-			bullet.sport()
-			if bullet.pos.left < 0:
-				bullet.kill()
-		#撞击判定
-		if pygame.sprite.spritecollideany(hero,enemy_group):
-			hero.bitcode = hero.bitcode - 1
-			if hero.bitcode == 0: #未知执行
-				hero.kill()
-			elif hero.bitcode > 0:
-				hero.alive = False
-				hero.life(hero.bitcode,hero.alive)
-			else:
-				Done = False
-		#跳跃判定
-		if jump_time > 0 and drop_time != 0:
-			hero.pos.move_ip(0,-10)
-			jump_time = jump_time - 1
-		if drop_time > 0 and jump_time == 0:
-			hero.pos.move_ip(0,10)
-			drop_time = drop_time - 1
+		if Bitcode == 0:
+			screen.fill((255,255,255))
+			Start().sport()
+		if Bitcode > 0:
+			screen.blit(background,(0,0))
+			#英雄更新
+			hero.life(hero.alive)
+			if hero.alive == False:
+				hero.alive = True
+			key = pygame.key.get_pressed()
+			hero.sport(key)
+			screen.blit(hero.image,hero.pos)
+			#敌人更新
+			for enemy in enemy_group:
+				enemy.sport()
+				screen.blit(enemy.surf,enemy.pos)
+			#子弹更新
+			for bullet in bullet_group:
+				bullet.sport()
+				if bullet.pos.left < 0:
+					bullet.kill()
+			#撞击判定
+			if pygame.sprite.spritecollideany(hero,enemy_group):
+				Bitcode = Bitcode - 1
+				if Bitcode <= 0: #未知执行
+					pass
+				elif Bitcode > 0:
+					hero.alive = False
+					hero.life(hero.alive)
+			#跳跃判定
+			if jump_time > 0 and drop_time != 0:
+				hero.pos.move_ip(0,-10)
+				jump_time = jump_time - 1
+			if drop_time > 0 and jump_time == 0:
+				hero.pos.move_ip(0,10)
+				drop_time = drop_time - 1
 
 		#总系统相关
 		pygame.display.flip()
