@@ -29,11 +29,11 @@ class Player(pygame.sprite.Sprite):
 		self.height = 50
 		self.width = 30
 		self.face = RIGHT
-		self.image01 = pygame.image.load('hero01R.png').convert_alpha()
-		self.image01.set_colorkey((255,255,255),pygame.RLEACCEL)
-		self.image02 = pygame.image.load('hero01L.png').convert_alpha()
-		self.image02.set_colorkey((255,255,255),pygame.RLEACCEL)
-		self.pos = self.rect = self.image01.get_rect()
+		self.image01R = pygame.image.load('./Pic/hero01R.png').convert_alpha()
+		self.image01R.set_colorkey((255,255,255),pygame.RLEACCEL)
+		self.image01L = pygame.image.load('./Pic/hero01L.png').convert_alpha()
+		self.image01L.set_colorkey((255,255,255),pygame.RLEACCEL)
+		self.pos = self.rect = self.image01R.get_rect()
 
 	def sport(self,key):
 		'''
@@ -107,7 +107,18 @@ class Map(pygame.sprite.Sprite):
 class Bullet(pygame.sprite.Sprite):
 	def __init__(self):
 		super().__init__()
-		self.image = pygame.image.load('bullet01.bmp').convert()
+		self.image01L = pygame.image.load('./Pic/bullet01L.png').convert_alpha()
+		self.image01R = pygame.image.load('./Pic/bullet01R.png').convert_alpha()
+		self.image01U = pygame.image.load('./Pic/bullet01U.png').convert_alpha()
+		self.image01D = pygame.image.load('./Pic/bullet01D.png').convert_alpha()
+		if hero.face == LEFT:
+			self.image = self.image01L
+		elif hero.face == RIGHT:
+			self.image = self.image01R
+		elif hero.face == UP:
+			self.image = self.image01U
+		elif hero.face == DOWN:
+			self.image = self.image01D
 		#asurf = pygame.image.load(os.path.join('data', 'bla.png'))
 		self.image.set_colorkey((255,255,255),pygame.RLEACCEL)
 		self.pos = self.rect = self.image.get_rect(center=(hero.pos.left,hero.pos.top+20))
@@ -171,9 +182,9 @@ if pygame.display.get_init():
 		key = pygame.key.get_pressed()
 		hero.sport(key)
 		if hero.face == RIGHT:
-			screen.blit(hero.image01,hero.pos)
+			screen.blit(hero.image01R,hero.pos)
 		else:
-			screen.blit(hero.image02,hero.pos)
+			screen.blit(hero.image01L,hero.pos)
 		#敌人更新
 		for enemy in enemy_group:
 			enemy.sport()
