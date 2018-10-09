@@ -9,16 +9,24 @@
 """
 pygame.display.get_active() #检查是否显示在屏幕上而没有被隐藏和最小化
 pygame.display.iconify() #最小化surface窗口
+加载图片也可用此方法：asurf = pygame.image.load(os.path.join('data', 'bla.png'))
+pygame.display.set_icon() #设置窗口执行时的图标,32*32像素
 """
 import sys
 import pygame
 
+#人物面对方向
 LEFT = 1
 RIGHT = -1
 UP = 1
 DOWN = -1
 FLAT = 0
+#B币
 Bitcode = 0 #I call it 'life times'
+#手持装备
+NONE = 0
+FIST = 1
+GUN = 2
 
 class Player(pygame.sprite.Sprite):
 	
@@ -28,36 +36,102 @@ class Player(pygame.sprite.Sprite):
 		self.height = 50 #人物高度
 		self.width = 30	#人物宽度
 		self.face_left = RIGHT #人物面对方向
-		self.face_top = FLAT #同上
-		#加载图片(未完成：预加载至缓冲区以减少损耗)
-		self.image01L = pygame.image.load('./Pic/hero01L.png').convert_alpha()
-		self.image01R = pygame.image.load('./Pic/hero01R.png').convert_alpha()
-		self.image01LU = pygame.image.load('./Pic/hero01LU.png').convert_alpha()
-		self.image01LD = pygame.image.load('./Pic/hero01LD.png').convert_alpha()
-		self.image01RU = pygame.image.load('./Pic/hero01RU.png').convert_alpha()
-		self.image01RD = pygame.image.load('./Pic/hero01RD.png').convert_alpha()
-		self.image = self.image01R
+		self.face_top = FLAT #人物面对方向
+		#加载图片
+		self.image_noneL = pygame.image.load('./Pic/Hero_noneL.png').convert_alpha()
+		self.image_noneR = pygame.image.load('./Pic/Hero_noneR.png').convert_alpha()
+		self.image_noneLU = pygame.image.load('./Pic/Hero_noneLU.png').convert_alpha()
+		self.image_noneLD = pygame.image.load('./Pic/Hero_noneLD.png').convert_alpha()
+		self.image_noneLDN = pygame.image.load('./Pic/Hero_noneLDN.png').convert_alpha()
+		self.image_noneRU = pygame.image.load('./Pic/Hero_noneRU.png').convert_alpha()
+		self.image_noneRD = pygame.image.load('./Pic/Hero_noneRD.png').convert_alpha()
+		self.image_noneRDN = pygame.image.load('./Pic/Hero_noneRDN.png').convert_alpha()
+		self.image_fist01L = pygame.image.load('./Pic/Hero_fist01L.png').convert_alpha()
+		self.image_fist01R = pygame.image.load('./Pic/Hero_fist01R.png').convert_alpha()
+		self.image_fist01LN = pygame.image.load('./Pic/Hero_fist01LN.png').convert_alpha()
+		self.image_fist01RN = pygame.image.load('./Pic/Hero_fist01RN.png').convert_alpha()
+		self.image_gun01L = pygame.image.load('./Pic/Hero_gun01L.png').convert_alpha()
+		self.image_gun01R = pygame.image.load('./Pic/Hero_gun01R.png').convert_alpha()
+		self.image_gun01LU = pygame.image.load('./Pic/Hero_gun01LU.png').convert_alpha()
+		self.image_gun01LD = pygame.image.load('./Pic/Hero_gun01LD.png').convert_alpha()
+		self.image_gun01LDN = pygame.image.load('./Pic/Hero_gun01LDN.png').convert_alpha()
+		self.image_gun01RU = pygame.image.load('./Pic/Hero_gun01RU.png').convert_alpha()
+		self.image_gun01RD = pygame.image.load('./Pic/Hero_gun01RD.png').convert_alpha()
+		self.image_gun01RDN = pygame.image.load('./Pic/Hero_gun01RDN.png').convert_alpha()
+		#初始状态！
+		self.image = self.image_noneR
+		self.equip = NONE
 		self.pos = self.rect = self.image.get_rect()
 
 	def sport(self,key):
 		'''键盘按键移动模块'''
-		#跳跃时间(未完成：全局变量更换为局部变量)
+		#跳跃时间，更改请去下面跳跃时间变量处
 		global jump_time
 		global drop_time
-
-		if self.face_left == LEFT and self.face_top == FLAT:
-			self.image = self.image01L
-		elif self.face_left == LEFT and self.face_top == UP:
-			self.image = self.image01LU
-		elif self.face_left == LEFT and self.face_top == DOWN:
-			self.image = self.image01LD
-		elif self.face_left == RIGHT and self.face_top == FLAT:
-			self.image = self.image01R
-		elif self.face_left == RIGHT and self.face_top == UP:
-			self.image = self.image01RU
-		elif self.face_left == RIGHT and self.face_top == DOWN:
-			self.image = self.image01RD
-
+		#图片选择，此处drop_time的范围影响跳下来趴下的速度！
+		if (jump_time == 0 and drop_time < 7) and self.face_top == DOWN: 
+			self.width = 50
+			self.height = 30
+			if self.face_left == LEFT:
+				if self.equip == NONE:
+					self.image = self.image_noneLDN
+				elif self.equip == FIST:
+					self.image = self.image_fist01LN
+				elif self.equip == GUN:
+					self.image = self.image_gun01LDN
+			elif self.face_left == RIGHT:
+				if self.equip == NONE:
+					self.image = self.image_noneRDN
+				elif self.equip == FIST:
+					self.image = self.image_fist01RN
+				elif self.equip == GUN:
+					self.image = self.image_gun01RDN
+		else:
+			self.width = 30
+			self.height = 50
+			if self.face_left == LEFT and self.face_top == FLAT:
+				if self.equip == NONE:
+					self.image = self.image_noneL
+				elif self.equip == FIST:
+					self.image = self.image_fist01L
+				elif self.equip == GUN:
+					self.image = self.image_gun01L
+			elif self.face_left == LEFT and self.face_top == UP:
+				if self.equip == NONE:
+					self.image = self.image_noneLU
+				elif self.equip == FIST:
+					self.image = self.image_fist01L
+				elif self.equip == GUN:
+					self.image = self.image_gun01LU
+			elif self.face_left == LEFT and self.face_top == DOWN:
+				if self.equip == NONE:
+					self.image = self.image_noneLD
+				elif self.equip == FIST:
+					self.image = self.image_fist01L
+				elif self.equip == GUN:
+					self.image = self.image_gun01LD
+			elif self.face_left == RIGHT and self.face_top == FLAT:
+				if self.equip == NONE:
+					self.image = self.image_noneR
+				elif self.equip == FIST:
+					self.image = self.image_fist01R
+				elif self.equip == GUN:
+					self.image = self.image_gun01R
+			elif self.face_left == RIGHT and self.face_top == UP:
+				if self.equip == NONE:
+					self.image = self.image_noneRU
+				elif self.equip == FIST:
+					self.image = self.image_fist01R
+				elif self.equip == GUN:
+					self.image = self.image_gun01RU
+			elif self.face_left == RIGHT and self.face_top == DOWN:
+				if self.equip == NONE:
+					self.image = self.image_noneRD
+				elif self.equip == FIST:
+					self.image = self.image_fist01R
+				elif self.equip == GUN:
+					self.image = self.image_gun01RD
+		#键盘上下左右移动
 		if (key[pygame.K_a] or key[pygame.K_LEFT]) and not (key[pygame.K_d] or key[pygame.K_RIGHT]):
 			self.pos.move_ip(-5,0)
 			self.face_left = LEFT
@@ -89,7 +163,7 @@ class Player(pygame.sprite.Sprite):
 		if alive == False and Bitcode > 0:
 			self.pos.move_ip(-hero.pos.left + 20,screen_height)
 		elif alive == True and Bitcode > 0:
-			pass
+				pass
 		else:
 			pass
 
@@ -126,40 +200,55 @@ class Map(pygame.sprite.Sprite):
 class Bullet(pygame.sprite.Sprite):
 	def __init__(self):
 		super().__init__()
-
+		#子弹初始参数
 		self.pos_left = hero.pos.left
-		self.pos_top = hero.pos.top + 20
-
+		self.pos_top = hero.pos.top + 12
+		#子弹图片加载
 		self.image01L = pygame.image.load('./Pic/bullet01L.png').convert_alpha()
 		self.image01R = pygame.image.load('./Pic/bullet01R.png').convert_alpha()
 		self.image01U = pygame.image.load('./Pic/bullet01U.png').convert_alpha()
 		self.image01D = pygame.image.load('./Pic/bullet01D.png').convert_alpha()
 		#子弹方向和高度和速度设置
-		if hero.face_left == LEFT and hero.face_top == FLAT:
-			self.image = self.image01L
-			self.speed_left = -2
-			self.speed_top = 0
-			self.pos_left = hero.pos.left
-			self.pos_top = hero.pos.top + 20
-		elif hero.face_left == RIGHT and hero.face_top == FLAT:
-			self.image = self.image01R
-			self.speed_left = 2
-			self.speed_top = 0
-			self.pos_left = hero.pos.left + hero.width
-			self.pos_top = hero.pos.top + 20
+		if hero.face_top == DOWN:
+			if jump_time > 0 or drop_time > 0:
+				self.image = self.image01D
+				self.speed_left = 0
+				self.speed_top = 7
+				self.pos_left = hero.pos.left + hero.width / 2
+				self.pos_top = hero.pos.top + 30
+			else:
+				if hero.face_left == LEFT:
+					self.image = self.image01L
+					self.speed_left = -7
+					self.speed_top = 0
+					self.pos_left = hero.pos.left
+					self.pos_top = hero.pos.top + 2
+				elif hero.face_left == RIGHT:
+					self.image = self.image01R
+					self.speed_left = 7
+					self.speed_top = 0
+					self.pos_left = hero.pos.left + hero.width
+					self.pos_top = hero.pos.top + 2
 		elif hero.face_top == UP:
 			self.image = self.image01U
 			self.speed_left = 0
-			self.speed_top = -2
+			self.speed_top = -7
 			self.pos_left = hero.pos.left + hero.width / 2
 			self.pos_top = hero.pos.top
-		elif hero.face_top == DOWN:
-			self.image = self.image01D
-			self.speed_left = 0
-			self.speed_top = 2
-			self.pos_left = hero.pos.left + hero.width / 2
-			self.pos_top = hero.pos.top + hero.height
-		#asurf = pygame.image.load(os.path.join('data', 'bla.png'))
+		elif hero.face_top == FLAT:
+			if hero.face_left == LEFT:
+				self.image = self.image01L
+				self.speed_left = -7
+				self.speed_top = 0
+				self.pos_left = hero.pos.left
+				self.pos_top = hero.pos.top + 12
+			elif hero.face_left == RIGHT:
+				self.image = self.image01R
+				self.speed_left = 7
+				self.speed_top = 0
+				self.pos_left = hero.pos.left + hero.width
+				self.pos_top = hero.pos.top + 12
+
 		self.image.set_colorkey((255,255,255),pygame.RLEACCEL)
 		self.pos = self.rect = self.image.get_rect(center=(self.pos_left,self.pos_top))
 
@@ -168,6 +257,7 @@ class Bullet(pygame.sprite.Sprite):
 		screen.blit(bullet.image,bullet.pos)
 
 class Start(pygame.sprite.Sprite):
+	"""开始界面"""
 	def __init__(self):
 		super().__init__()
 		self.text = start_font.render("Press q to play",False,(0,0,0))
@@ -180,33 +270,34 @@ pygame.init()
 #pygame.display.init()
 if pygame.display.get_init():
 	#初始设置
-	start_font = pygame.font.SysFont('arial',18, False, False)
-	clock = pygame.time.Clock()
+	start_font = pygame.font.SysFont('arial',18, False, False) #字体
+	clock = pygame.time.Clock() #时钟
 	Done = True
     
-	pygame.display.set_caption('Game')
-    #pygame.display.set_icon() #设置窗口执行时的图标,32*32像素
-	Map.background()
+	pygame.display.set_caption('Game') #标题
 
-	ADDENEMYT = pygame.USEREVENT + 1
+	Map.background() #背景
+
+	ADDENEMYT = pygame.USEREVENT + 1 #敌人添加
 	pygame.time.set_timer(ADDENEMYT,2500) #2500毫秒触发
-	jump_time = 0
+	jump_time = 0 #初始化跳跃时间
 	drop_time = 0
-
-	hero = Player()
+	#初始化人物
+	hero = Player() 
 	hero.alive = False
-
+	#精灵组添加
 	enemy_group = pygame.sprite.Group()
 	bullet_group = pygame.sprite.Group()
 	all_sprites = pygame.sprite.Group()
 	all_sprites.add(hero)
-
+	#炒鸡无地大循环
 	while Done:
-		#事件相关
+		#事件循环
 		for events in pygame.event.get():
-			#按键设置
+			#右上角叉叉关闭
 			if events.type == pygame.QUIT:
 				Done = False
+			#按键设置
 			if events.type == pygame.KEYDOWN:
 				if events.key == pygame.K_ESCAPE:
 					Done = False
@@ -216,12 +307,18 @@ if pygame.display.get_init():
 						jump_time = 0
 						drop_time = 0
 					if events.key == pygame.K_j:
-						new_bullet = Bullet()
-						bullet_group.add(new_bullet)
-						all_sprites.add(new_bullet)
+						if hero.equip == FIST:
+							pass
+						elif hero.equip == GUN:
+							new_bullet = Bullet()
+							bullet_group.add(new_bullet)
+							all_sprites.add(new_bullet)
+					if events.key == pygame.K_e:
+						hero.equip = GUN
 				if Bitcode == 0:
 					if events.key == pygame.K_q:
 						Bitcode = 3
+			#敌人加入精灵组
 			if Bitcode > 0:
 				if events.type == ADDENEMYT:
 					new_enemy = Enemy()
@@ -234,6 +331,8 @@ if pygame.display.get_init():
 			hero.life(hero.alive)
 			key = pygame.key.get_pressed()
 			hero.sport(key)
+			if (jump_time == 0 or drop_time == 0) and hero.face_top == DOWN:
+				hero.pos.move_ip(0,30)
 			screen.blit(hero.image,hero.pos)
 			#敌人更新
 			for enemy in enemy_group:
@@ -259,12 +358,13 @@ if pygame.display.get_init():
 			if hero.alive == True and drop_time > 0 and jump_time == 0:
 				hero.pos.move_ip(0,10)
 				drop_time = drop_time - 1
+		#开始界面入口
 		if Bitcode == 0:
 			screen.fill((255,255,255))
 			Start().sport()
 		#总系统相关
 		pygame.display.flip()
-		clock.tick(40)
-
+		clock.tick(40) #维持40帧
+#退出
 pygame.quit()
 sys.exit(0)
