@@ -12,8 +12,9 @@ pygame.display.iconify() #最小化surface窗口
 加载图片也可用此方法：asurf = pygame.image.load(os.path.join('data', 'bla.png'))
 pygame.display.set_icon() #设置窗口执行时的图标,32*32像素
 """
-import sys
+from sys import exit
 import pygame
+from random import randint 
 
 #人物面对方向
 LEFT = 1
@@ -184,9 +185,6 @@ class Enemy(pygame.sprite.Sprite):
 class Map(pygame.sprite.Sprite):
 	def __init__(self):
 		super().__init__()
-
-	def background():
-		'''背景设置'''
 		global screen
 		global screen_width
 		global screen_height
@@ -194,8 +192,68 @@ class Map(pygame.sprite.Sprite):
 		screen_width = 500
 		screen_height = 300
 		screen = pygame.display.set_mode((screen_width,screen_height))
-		background = pygame.Surface(screen.get_size())
-		background.fill((135,206,250))
+		self.rand = -1
+
+		self.image01 = pygame.image.load('./Pic/background01.png').convert_alpha()
+
+		self.image = self.image01
+		self.width = 0
+		self.height = 0
+		self.width_max = self.image.get_rect().width - screen_width
+		self.height_max = self.image.get_rect().height - screen_height
+		self.speed = (self.width_max / screen_width + self.height_max / screen_height) / 2
+		self.lock = 0
+
+	def sport(self):
+		if self.lock == 0 and (self.width <= 0 or self.height <= 0 or self.width >= self.width_max or self.height >= self.height_max):
+			self.rand = randint(0,7)
+			self.lock = 1
+
+		if self.rand == 0 and self.height > 0: #上
+			self.height = self.height - self.speed
+			if self.height <= 0:
+				self.lock = 0
+		elif self.rand == 1 and self.height > 0 and self.width < self.width_max: #右上
+			self.height = self.height - self.speed
+			self.width = self.width + self.speed
+			self.lock = 0
+		elif self.rand == 2 and self.width < self.width_max: #右
+			self.width = self.width + self.speed
+			if self.width >= self.width_max:
+				self.lock = 0
+		elif self.rand == 3 and self.height < self.height_max and self.width < self.width_max: #右下
+			self.height = self.height + self.speed
+			self.width = self.width + self.speed
+			self.lock = 0
+		elif self.rand == 4 and self.height < self.height_max: #下
+			self.width = self.height + self.speed
+			if self.height >= self.height_max:
+				self.lock = 0
+		elif self.rand == 5 and self.height < self.height_max and self.width > 0: #左下
+			self.height = self.height + self.speed
+			self.width = self.width - self.speed
+			self.lock = 0
+		elif self.rand == 6 and self.width > 0: #左
+			self.width = self.width - self.speed
+			if self.width <= 0:
+				self.lock = 0
+		elif self.rand == 7 and self.height > 0 and self.width > 0: #左上
+			self.height = self.height - self.speed
+			self.width = self.width - self.speed
+			self.lock = 0
+		else:
+			self.lock = 0
+		#防止卡死，虽然我不知道还会不会卡死了
+		if self.height > self.height_max:
+			self.height = self.height_max
+		if self.width > self.width_max:
+			self.width = self.width_max
+		if self.height < 0:
+			self.height = 0
+		if self.width < 0:
+			self.width = 0
+
+		screen.blit(self.image,(-self.width,-self.height))
 
 class Bullet(pygame.sprite.Sprite):
 	def __init__(self):
@@ -276,7 +334,7 @@ if pygame.display.get_init():
     
 	pygame.display.set_caption('Game') #标题
 
-	Map.background() #背景
+	background = Map() #背景
 
 	ADDENEMYT = pygame.USEREVENT + 1 #敌人添加
 	pygame.time.set_timer(ADDENEMYT,2500) #2500毫秒触发
@@ -326,7 +384,8 @@ if pygame.display.get_init():
 					all_sprites.add(new_enemy)
 		#生命数判定
 		if Bitcode > 0:
-			screen.blit(background,(0,0))
+			#背景更新
+			background.sport()
 			#英雄更新
 			hero.life(hero.alive)
 			key = pygame.key.get_pressed()
@@ -341,7 +400,7 @@ if pygame.display.get_init():
 			#子弹更新
 			for bullet in bullet_group:
 				bullet.sport()
-				if bullet.pos.left < 0:
+				if bullet.pos.left < 0 or bullet.pos.top < 0 or bullet.pos.left > screen_width or bullet.pos.top > screen_height:
 					bullet.kill()
 			#撞击判定
 			if pygame.sprite.spritecollideany(hero,enemy_group):
@@ -367,4 +426,4 @@ if pygame.display.get_init():
 		clock.tick(40) #维持40帧
 #退出
 pygame.quit()
-sys.exit(0)
+exit(0)
