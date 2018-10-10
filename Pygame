@@ -24,6 +24,8 @@ DOWN = -1
 FLAT = 0
 #B币
 Bitcode = 0 #I call it 'life times'
+#音乐
+Music = 0
 #手持装备
 NONE = 0
 FIST = 1
@@ -226,7 +228,7 @@ class Map(pygame.sprite.Sprite):
 			self.width = self.width + self.speed
 			self.lock = 0
 		elif self.rand == 4 and self.height < self.height_max: #下
-			self.width = self.height + self.speed
+			self.height = self.height + self.speed
 			if self.height >= self.height_max:
 				self.lock = 0
 		elif self.rand == 5 and self.height < self.height_max and self.width > 0: #左下
@@ -242,7 +244,7 @@ class Map(pygame.sprite.Sprite):
 			self.width = self.width - self.speed
 			self.lock = 0
 		else:
-			self.lock = 0
+			self.rand = randint(0,7)
 		#防止卡死，虽然我不知道还会不会卡死了
 		if self.height > self.height_max:
 			self.height = self.height_max
@@ -376,6 +378,7 @@ if pygame.display.get_init():
 				if Bitcode == 0:
 					if events.key == pygame.K_q:
 						Bitcode = 3
+						Music = 1
 			#敌人加入精灵组
 			if Bitcode > 0:
 				if events.type == ADDENEMYT:
@@ -421,6 +424,17 @@ if pygame.display.get_init():
 		if Bitcode == 0:
 			screen.fill((255,255,255))
 			Start().sport()
+			if Music == -1:
+				Music = 0
+		#音乐播放入口
+		if Music == 0:
+			pygame.mixer.music.load("./Music/start.mp3")
+			pygame.mixer.music.play(-1)
+			Music = -2
+		elif Music == 1:
+			pygame.mixer.music.load("./Music/01.mp3")
+			pygame.mixer.music.play(-1)
+			Music = -1
 		#总系统相关
 		pygame.display.flip()
 		clock.tick(40) #维持40帧
