@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-@protect name:Contra
+@protect name:Fighting
 @author:DuckQuick
 @email: m18834164553@163.com
 @time:2018-10-5
@@ -161,14 +161,9 @@ class Player(pygame.sprite.Sprite):
 		elif self.pos.bottom >= screen_height:
 			self.pos.bottom = screen_height
 
-	def life(self,alive):
-		'''生命模块(未完成)'''
+	def reborn(self,alive):
 		if alive == False and Bitcode > 0:
 			self.pos.move_ip(-hero.pos.left + 20,screen_height)
-		elif alive == True and Bitcode > 0:
-				pass
-		else:
-			pass
 
 class Enemy(pygame.sprite.Sprite):
 	def __init__(self):
@@ -316,6 +311,26 @@ class Bullet(pygame.sprite.Sprite):
 		self.pos.move_ip(self.speed_left,self.speed_top)
 		screen.blit(bullet.image,bullet.pos)
 
+class Condition(pygame.sprite.Sprite):
+	'''左上角状态'''
+	def __init__(self):
+		super().__init__()
+		self.text01 = condition_font01.render("Lives:",False,(0,0,0))
+		self.text02 = condition_font02.render("Health:",False,(0,0,0))
+
+		self.image01 = pygame.image.load('./Pic/happy.png').convert_alpha()
+		self.width01 = 0
+
+	def sport(self):
+		screen.blit(self.text01,(10,10))
+		for _ in range(0,Bitcode):
+			screen.blit(self.image01,(80 + self.width01,10))
+			self.width01 = self.width01 + 35
+			if self.width01 >= Bitcode * 35:
+				self.width01 = 0 
+
+		screen.blit(self.text02,(10,35))
+
 class Start(pygame.sprite.Sprite):
 	"""开始界面"""
 	def __init__(self):
@@ -331,6 +346,8 @@ pygame.init()
 if pygame.display.get_init():
 	#初始设置
 	start_font = pygame.font.SysFont('arial',18, False, False) #字体
+	condition_font01 = pygame.font.SysFont('arial',30, False, False)
+	condition_font02 = pygame.font.SysFont('arial',30, False, False)
 	clock = pygame.time.Clock() #时钟
 	Done = True
 	Fist_time = 0
@@ -338,6 +355,7 @@ if pygame.display.get_init():
 	pygame.display.set_caption('Game') #标题
 
 	background = Map() #背景
+	condition = Condition() #左上角状态
 
 	ADDENEMYT = pygame.USEREVENT + 1 #敌人添加
 	pygame.time.set_timer(ADDENEMYT,2500) #2500毫秒触发
@@ -394,8 +412,9 @@ if pygame.display.get_init():
 		if Bitcode > 0:
 			#背景更新
 			background.sport()
+			condition.sport()
 			#英雄更新
-			hero.life(hero.alive)
+			hero.reborn(hero.alive)
 			key = pygame.key.get_pressed()
 			hero.sport(key)
 			if (jump_time == 0 or drop_time == 0) and hero.face_top == DOWN:
@@ -417,7 +436,7 @@ if pygame.display.get_init():
 				if Bitcode <= 0: #未知执行
 					pass
 				elif Bitcode > 0:
-					hero.life(hero.alive)
+					hero.reborn(hero.alive)
 			#跳跃判定
 			if hero.alive == True and jump_time > 0 and drop_time != 0:
 				hero.pos.move_ip(0,-10)
@@ -435,6 +454,7 @@ if pygame.display.get_init():
 		if Bitcode == 0:
 			screen.fill((255,255,255))
 			Start().sport()
+			condition.width01 = 0
 			if Music == -1:
 				Music = 0
 		#音乐播放入口
