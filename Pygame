@@ -333,6 +333,7 @@ if pygame.display.get_init():
 	start_font = pygame.font.SysFont('arial',18, False, False) #字体
 	clock = pygame.time.Clock() #时钟
 	Done = True
+	Fist_time = 0
     
 	pygame.display.set_caption('Game') #标题
 
@@ -367,14 +368,18 @@ if pygame.display.get_init():
 						jump_time = 0
 						drop_time = 0
 					if events.key == pygame.K_j:
-						if hero.equip == FIST:
-							pass
+						if hero.equip == NONE:
+							hero.equip = FIST
 						elif hero.equip == GUN:
+							Fist_time = 0
 							new_bullet = Bullet()
 							bullet_group.add(new_bullet)
 							all_sprites.add(new_bullet)
 					if events.key == pygame.K_e:
-						hero.equip = GUN
+						if hero.equip == GUN:
+							hero.equip = NONE
+						elif hero.equip == FIST or hero.equip == NONE:
+							hero.equip = GUN
 				if Bitcode == 0:
 					if events.key == pygame.K_q:
 						Bitcode = 3
@@ -420,6 +425,12 @@ if pygame.display.get_init():
 			if hero.alive == True and drop_time > 0 and jump_time == 0:
 				hero.pos.move_ip(0,10)
 				drop_time = drop_time - 1
+			#击打判定
+			if hero.equip == FIST:
+				Fist_time = Fist_time + 1
+				if Fist_time > 2:
+					hero.equip = NONE
+					Fist_time = 0
 		#开始界面入口
 		if Bitcode == 0:
 			screen.fill((255,255,255))
