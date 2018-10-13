@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-@protect name:Fighting
+@project name:Fighting
 @author:DuckQuick
 @email: m18834164553@163.com
 @time:2018-10-5
@@ -362,7 +362,7 @@ if pygame.display.get_init():
 	jump_time = 0 #初始化跳跃时间
 	drop_time = 0
 	#初始化人物
-	hero = Player() 
+	hero = Player()
 	hero.alive = False
 	#精灵组添加
 	enemy_group = pygame.sprite.Group()
