@@ -36,6 +36,7 @@ class Player(pygame.sprite.Sprite):
 	def __init__(self):
 		'''初始化主要参数'''
 		super().__init__()
+		self.health = 1000
 		self.height = 50 #人物高度
 		self.width = 30	#人物宽度
 		self.face_left = RIGHT #人物面对方向
@@ -328,6 +329,8 @@ class Condition(pygame.sprite.Sprite):
 			self.width01 = self.width01 + 35
 			if self.width01 >= Bitcode * 35:
 				self.width01 = 0 
+		for _ in range(0,hero.health + 1):
+			pygame.draw.rect(screen, (255,0,0), [95, 45, hero.health / 10, 20])
 
 		screen.blit(self.text02,(10,35))
 
@@ -336,6 +339,7 @@ class Start(pygame.sprite.Sprite):
 	def __init__(self):
 		super().__init__()
 		self.text = start_font.render("Press q to play",False,(0,0,0))
+
 
 	def sport(self):
 		screen.blit(self.text,(screen_width / 2,screen_height / 2))
