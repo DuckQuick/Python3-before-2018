@@ -1,0 +1,589 @@
+# -*- coding: utf-8 -*-
+"""
+@project name:Fighting
+@author:DuckQuick
+@email: m18834164553@163.com
+@time:2018-10-5
+@github ID:DuckQuick
+"""
+"""
+pygame.display.get_active() #检查是否显示在屏幕上而没有被隐藏和最小化
+pygame.display.iconify() #最小化surface窗口
+加载图片也可用此方法：asurf = pygame.image.load(os.path.join('data', 'bla.png'))
+pygame.display.set_icon() #设置窗口执行时的图标,32*32像素
+"""
+from sys import exit
+import pygame
+from random import randint 
+import time
+
+#人物面对方向
+LEFT = 1
+RIGHT = -1
+UP = 1
+DOWN = -1
+FLAT = 0
+#B币
+Bitcode = 0 #I call it 'life times'
+#音乐
+Music = 0
+#手持装备
+NONE = 0
+FIST = 1
+GUN = 2
+
+class Player(pygame.sprite.Sprite):
+	
+	def __init__(self):
+		'''初始化主要参数'''
+		super().__init__()
+		self.health = 1000
+		self.height = 50 #人物高度
+		self.width = 30	#人物宽度
+		self.face_left = RIGHT #人物面对方向
+		self.face_top = FLAT #人物面对方向
+		#加载图片
+		self.image_noneL = pygame.image.load('./Pic/Hero_noneL.png').convert_alpha()
+		self.image_noneR = pygame.image.load('./Pic/Hero_noneR.png').convert_alpha()
+		self.image_noneLU = pygame.image.load('./Pic/Hero_noneLU.png').convert_alpha()
+		self.image_noneLD = pygame.image.load('./Pic/Hero_noneLD.png').convert_alpha()
+		self.image_noneLDN = pygame.image.load('./Pic/Hero_noneLDN.png').convert_alpha()
+		self.image_noneRU = pygame.image.load('./Pic/Hero_noneRU.png').convert_alpha()
+		self.image_noneRD = pygame.image.load('./Pic/Hero_noneRD.png').convert_alpha()
+		self.image_noneRDN = pygame.image.load('./Pic/Hero_noneRDN.png').convert_alpha()
+		self.image_fist01L = pygame.image.load('./Pic/Hero_fist01L.png').convert_alpha()
+		self.image_fist01R = pygame.image.load('./Pic/Hero_fist01R.png').convert_alpha()
+		self.image_fist01LN = pygame.image.load('./Pic/Hero_fist01LN.png').convert_alpha()
+		self.image_fist01RN = pygame.image.load('./Pic/Hero_fist01RN.png').convert_alpha()
+		self.image_gun01L = pygame.image.load('./Pic/Hero_gun01L.png').convert_alpha()
+		self.image_gun01R = pygame.image.load('./Pic/Hero_gun01R.png').convert_alpha()
+		self.image_gun01LU = pygame.image.load('./Pic/Hero_gun01LU.png').convert_alpha()
+		self.image_gun01LD = pygame.image.load('./Pic/Hero_gun01LD.png').convert_alpha()
+		self.image_gun01LDN = pygame.image.load('./Pic/Hero_gun01LDN.png').convert_alpha()
+		self.image_gun01RU = pygame.image.load('./Pic/Hero_gun01RU.png').convert_alpha()
+		self.image_gun01RD = pygame.image.load('./Pic/Hero_gun01RD.png').convert_alpha()
+		self.image_gun01RDN = pygame.image.load('./Pic/Hero_gun01RDN.png').convert_alpha()
+		#初始状态！
+		self.image = self.image_noneR
+		self.equip = NONE
+		self.pos = self.rect = self.image.get_rect()
+
+	def sport(self,key):
+		'''键盘按键移动模块'''
+		#跳跃时间，更改请去下面跳跃时间变量处
+		global jump_time
+		global drop_time
+		global JUMP
+		#图片选择，此处drop_time的范围影响跳下来趴下的速度！
+		if (jump_time == 0 and drop_time < 7) and self.face_top == DOWN and JUMP == 0: 
+			self.width = 50
+			self.height = 30
+			if self.face_left == LEFT:
+				if self.equip == NONE:
+					self.image = self.image_noneLDN
+				elif self.equip == FIST:
+					self.image = self.image_fist01LN
+				elif self.equip == GUN:
+					self.image = self.image_gun01LDN
+			elif self.face_left == RIGHT:
+				if self.equip == NONE:
+					self.image = self.image_noneRDN
+				elif self.equip == FIST:
+					self.image = self.image_fist01RN
+				elif self.equip == GUN:
+					self.image = self.image_gun01RDN
+		else:
+			self.width = 30
+			self.height = 50
+			if self.face_left == LEFT and self.face_top == FLAT:
+				if self.equip == NONE:
+					self.image = self.image_noneL
+				elif self.equip == FIST:
+					self.image = self.image_fist01L
+				elif self.equip == GUN:
+					self.image = self.image_gun01L
+			elif self.face_left == LEFT and self.face_top == UP:
+				if self.equip == NONE:
+					self.image = self.image_noneLU
+				elif self.equip == FIST:
+					self.image = self.image_fist01L
+				elif self.equip == GUN:
+					self.image = self.image_gun01LU
+			elif self.face_left == LEFT and self.face_top == DOWN:
+				if self.equip == NONE:
+					self.image = self.image_noneLD
+				elif self.equip == FIST:
+					self.image = self.image_fist01L
+				elif self.equip == GUN:
+					self.image = self.image_gun01LD
+			elif self.face_left == RIGHT and self.face_top == FLAT:
+				if self.equip == NONE:
+					self.image = self.image_noneR
+				elif self.equip == FIST:
+					self.image = self.image_fist01R
+				elif self.equip == GUN:
+					self.image = self.image_gun01R
+			elif self.face_left == RIGHT and self.face_top == UP:
+				if self.equip == NONE:
+					self.image = self.image_noneRU
+				elif self.equip == FIST:
+					self.image = self.image_fist01R
+				elif self.equip == GUN:
+					self.image = self.image_gun01RU
+			elif self.face_left == RIGHT and self.face_top == DOWN:
+				if self.equip == NONE:
+					self.image = self.image_noneRD
+				elif self.equip == FIST:
+					self.image = self.image_fist01R
+				elif self.equip == GUN:
+					self.image = self.image_gun01RD
+		#键盘上下左右移动
+		if (key[pygame.K_a] or key[pygame.K_LEFT]) and not (key[pygame.K_d] or key[pygame.K_RIGHT]):
+			self.pos.move_ip(-5,0)
+			self.face_left = LEFT
+		elif (key[pygame.K_d] or key[pygame.K_RIGHT]) and not (key[pygame.K_a] or key[pygame.K_LEFT]):
+			self.pos.move_ip(5,0)
+			self.face_left = RIGHT
+		if (key[pygame.K_s] or key[pygame.K_DOWN]) and not (key[pygame.K_w] or key[pygame.K_UP]):
+			self.face_top = DOWN
+		elif (key[pygame.K_w] or key[pygame.K_UP]) and not (key[pygame.K_s] or key[pygame.K_DOWN]):
+			self.face_top = UP
+		elif not (key[pygame.K_w] or key[pygame.K_UP]) and not (key[pygame.K_s] or key[pygame.K_DOWN]):
+			self.face_top = FLAT
+		#跳跃时间变量，影响跳跃高度
+		if key[pygame.K_k] and jump_time == 0 and drop_time == 0:
+			JUMP = 1
+			jump_time = 10
+			drop_time = jump_time
+		#防止人物跑出屏幕
+		if self.pos.left < 0:
+			self.pos.left = 0
+		elif self.pos.right > screen_width:
+			self.pos.right = screen_width
+		if self.pos.top <= 0:
+			self.pos.top = 0
+		elif self.pos.bottom > screen_height:
+			self.pos.bottom = screen_height
+
+	def reborn(self,alive):
+		if alive == False and Bitcode > 0:
+			self.pos.move_ip(-hero.pos.left + 20,screen_height)
+
+class Enemy(pygame.sprite.Sprite):
+	def __init__(self):
+		super().__init__()
+		self.height = 50
+		self.width = 30
+		self.surf = pygame.Surface((self.width,self.height))
+		self.surf.fill((255,255,255))
+		self.pos = self.rect = self.surf.get_rect(center=(500,200))
+
+	def sport(self):
+		self.pos.move_ip(-1,0)
+		if self.pos.right < 0:
+			self.kill()
+
+class Background():
+	def __init__(self):
+		global screen
+		global screen_width
+		global screen_height
+		global background
+		screen_width = 500
+		screen_height = 300
+		screen = pygame.display.set_mode((screen_width,screen_height))
+		self.rand = -1
+
+		self.image01 = pygame.image.load('./Pic/background01.png').convert_alpha()
+
+		self.image = self.image01
+		self.width = 0
+		self.height = 0
+		self.width_max = self.image.get_rect().width - screen_width
+		self.height_max = self.image.get_rect().height - screen_height
+		self.speed = (self.width_max / screen_width + self.height_max / screen_height) / 2
+		self.lock = 0
+
+	def sport(self):
+		if self.lock == 0 and (self.width <= 0 or self.height <= 0 or self.width >= self.width_max or self.height >= self.height_max):
+			self.rand = randint(0,7)
+			self.lock = 1
+
+		if self.rand == 0 and self.height > 0: #上
+			self.height = self.height - self.speed
+			if self.height <= 0:
+				self.lock = 0
+		elif self.rand == 1 and self.height > 0 and self.width < self.width_max: #右上
+			self.height = self.height - self.speed
+			self.width = self.width + self.speed
+			self.lock = 0
+		elif self.rand == 2 and self.width < self.width_max: #右
+			self.width = self.width + self.speed
+			if self.width >= self.width_max:
+				self.lock = 0
+		elif self.rand == 3 and self.height < self.height_max and self.width < self.width_max: #右下
+			self.height = self.height + self.speed
+			self.width = self.width + self.speed
+			self.lock = 0
+		elif self.rand == 4 and self.height < self.height_max: #下
+			self.height = self.height + self.speed
+			if self.height >= self.height_max:
+				self.lock = 0
+		elif self.rand == 5 and self.height < self.height_max and self.width > 0: #左下
+			self.height = self.height + self.speed
+			self.width = self.width - self.speed
+			self.lock = 0
+		elif self.rand == 6 and self.width > 0: #左
+			self.width = self.width - self.speed
+			if self.width <= 0:
+				self.lock = 0
+		elif self.rand == 7 and self.height > 0 and self.width > 0: #左上
+			self.height = self.height - self.speed
+			self.width = self.width - self.speed
+			self.lock = 0
+		else:
+			self.rand = randint(0,7)
+		#防止卡死，虽然我不知道还会不会卡死了
+		if self.height > self.height_max:
+			self.height = self.height_max
+		if self.width > self.width_max:
+			self.width = self.width_max
+		if self.height < 0:
+			self.height = 0
+		if self.width < 0:
+			self.width = 0
+
+		screen.blit(self.image,(-self.width,-self.height))
+
+class Bullet(pygame.sprite.Sprite):
+	def __init__(self):
+		super().__init__()
+		#子弹初始参数
+		self.pos_left = hero.pos.left
+		self.pos_top = hero.pos.top + 12
+		#子弹图片加载
+		self.image01L = pygame.image.load('./Pic/bullet01L.png').convert_alpha()
+		self.image01R = pygame.image.load('./Pic/bullet01R.png').convert_alpha()
+		self.image01U = pygame.image.load('./Pic/bullet01U.png').convert_alpha()
+		self.image01D = pygame.image.load('./Pic/bullet01D.png').convert_alpha()
+		#子弹方向和高度和速度设置
+		if hero.face_top == DOWN:
+			if jump_time > 0 or drop_time > 0:
+				self.image = self.image01D
+				self.speed_left = 0
+				self.speed_top = 7
+				self.pos_left = hero.pos.left + hero.width / 2
+				self.pos_top = hero.pos.top + 30
+			else:
+				if hero.face_left == LEFT:
+					self.image = self.image01L
+					self.speed_left = -7
+					self.speed_top = 0
+					self.pos_left = hero.pos.left
+					self.pos_top = hero.pos.top + 2
+				elif hero.face_left == RIGHT:
+					self.image = self.image01R
+					self.speed_left = 7
+					self.speed_top = 0
+					self.pos_left = hero.pos.left + hero.width
+					self.pos_top = hero.pos.top + 2
+		elif hero.face_top == UP:
+			self.image = self.image01U
+			self.speed_left = 0
+			self.speed_top = -7
+			self.pos_left = hero.pos.left + hero.width / 2
+			self.pos_top = hero.pos.top
+		elif hero.face_top == FLAT:
+			if hero.face_left == LEFT:
+				self.image = self.image01L
+				self.speed_left = -7
+				self.speed_top = 0
+				self.pos_left = hero.pos.left
+				self.pos_top = hero.pos.top + 12
+			elif hero.face_left == RIGHT:
+				self.image = self.image01R
+				self.speed_left = 7
+				self.speed_top = 0
+				self.pos_left = hero.pos.left + hero.width
+				self.pos_top = hero.pos.top + 12
+
+		self.image.set_colorkey((255,255,255),pygame.RLEACCEL)
+		self.pos = self.rect = self.image.get_rect(center=(self.pos_left,self.pos_top))
+
+	def sport(self):
+		self.pos.move_ip(self.speed_left,self.speed_top)
+		screen.blit(bullet.image,bullet.pos)
+
+class Condition(pygame.sprite.Sprite):
+	'''左上角状态'''
+	def __init__(self):
+		super().__init__()
+		self.text01 = condition_font01.render("Lives:",False,(0,0,0))
+		self.text02 = condition_font02.render("Health:",False,(0,0,0))
+
+		self.image01 = pygame.image.load('./Pic/happy.png').convert_alpha()
+		self.width01 = 0
+
+	def sport(self):
+		screen.blit(self.text01,(10,10))
+		for _ in range(0,Bitcode):
+			screen.blit(self.image01,(80 + self.width01,10))
+			self.width01 = self.width01 + 35
+			if self.width01 >= Bitcode * 35:
+				self.width01 = 0 
+
+		for _ in range(0,hero.health + 1):
+			pygame.draw.rect(screen, (255,0,0), [95, 45, hero.health / 10, 20])
+
+		screen.blit(self.text02,(10,35))
+
+class Start(pygame.sprite.Sprite):
+	"""开始界面"""
+	def __init__(self):
+		super().__init__()
+		self.text = start_font.render("Press q to play",False,(0,0,0))
+
+	def sport(self):
+		screen.blit(self.text,(screen_width / 2,screen_height / 2))
+
+class Floor(pygame.sprite.Sprite):
+	def __init__(self):
+		super().__init__()
+		self.height = 10
+		self.width = 30
+		self.surf = pygame.Surface((self.width,self.height))
+		self.surf.fill((255,0,0))
+		self.pos = self.rect = self.surf.get_rect(center=(screen_width,hero.pos.top - 10))
+
+	def sport(self):
+		self.pos.move_ip(-1,0)
+		if self.pos.right < 0 or self.pos.top > screen_height:
+			self.kill()
+
+'''主函数入口'''
+pygame.init()
+#pygame.display.init()
+if pygame.display.get_init():
+	#初始设置
+	start_font = pygame.font.SysFont('arial',18, False, False) #字体
+	condition_font01 = pygame.font.SysFont('arial',30, False, False)
+	condition_font02 = pygame.font.SysFont('arial',30, False, False)
+	clock = pygame.time.Clock() #时钟
+	Done = True
+	Fist_time = 0
+	INFLOOR = 0
+    
+	pygame.display.set_caption('Game') #标题
+
+	background = Background() #背景
+	condition = Condition() #左上角状态
+
+	ADDENEMYT = pygame.USEREVENT + 1 #敌人添加
+	pygame.time.set_timer(ADDENEMYT,2500) #2500毫秒触发
+	ADDFLOOR = pygame.USEREVENT + 2
+	pygame.time.set_timer(ADDFLOOR,3000)
+
+	jump_time = 0 #初始化跳跃时间
+	drop_time = 0
+	JUMP = 0
+	#初始化人物
+	hero = Player()
+	hero.alive = False
+	#精灵组添加
+	enemy_group = pygame.sprite.Group()
+	bullet_group = pygame.sprite.Group()
+	floor_group = pygame.sprite.Group()
+	all_sprites = pygame.sprite.Group()
+	all_sprites.add(hero)
+
+	#炒鸡无地大循环
+	while Done:
+		#事件循环
+		for events in pygame.event.get():
+			#右上角叉叉关闭
+			if events.type == pygame.QUIT:
+				Done = False
+			#按键设置
+			if events.type == pygame.KEYDOWN:
+				if events.key == pygame.K_ESCAPE:
+					Done = False
+				if Bitcode > 0:
+					if hero.alive == False:
+						hero.alive = True
+						jump_time = 0
+						drop_time = 0
+					if events.key == pygame.K_j:
+						if hero.equip == NONE:
+							hero.equip = FIST
+						elif hero.equip == GUN:
+							Fist_time = 0
+							new_bullet = Bullet()
+							bullet_group.add(new_bullet)
+							all_sprites.add(new_bullet)
+					if events.key == pygame.K_e:
+						if hero.equip == GUN:
+							hero.equip = NONE
+						elif hero.equip == FIST or hero.equip == NONE:
+							hero.equip = GUN
+				if Bitcode == 0:
+					if events.key == pygame.K_q:
+						Bitcode = 3
+						Music = 1
+			#精灵组
+			if Bitcode > 0:
+				if events.type == ADDENEMYT:
+					new_enemy = Enemy()
+					enemy_group.add(new_enemy)
+					all_sprites.add(new_enemy)
+				if events.type == ADDFLOOR:
+					new_floor = Floor()
+					floor_group.add(new_floor)
+					all_sprites.add(floor_group)
+
+		#生命数判定
+		if Bitcode > 0:
+			#背景更新
+			background.sport()
+			condition.sport()
+			#英雄更新
+			hero.reborn(hero.alive)
+			key = pygame.key.get_pressed()
+			hero.sport(key)
+			if INFLOOR == 0 and (jump_time == 0 or drop_time == 0) and hero.face_top == DOWN and JUMP == 0:
+				for _ in range(0,25):
+					if pygame.sprite.spritecollideany(hero,floor_group):
+						sprite_rect = pygame.sprite.spritecollideany(hero,floor_group).rect
+						if sprite_rect.top - hero.pos.bottom == -1:
+							INFLOOR = 1
+							hero.pos.move_ip(0,0)
+							jump_time = 0
+							drop_time = 0
+							JUMP = 0
+					else:
+						INFLOOR = 0
+					if INFLOOR == 1:
+						break
+					hero.pos.move_ip(0,1)
+			if INFLOOR == 0 and jump_time == 0 and drop_time == 0 and JUMP == 0 and hero.pos.bottom < screen_height:
+				hero.pos.move_ip(0,1)
+			screen.blit(hero.image,hero.pos) #炒鸡重要的入口！！！！！
+ 			#敌人更新
+			'''for enemy in enemy_group:
+				enemy.sport()
+				screen.blit(enemy.surf,enemy.pos)'''
+			#子弹更新
+			for bullet in bullet_group:
+				bullet.sport()
+				if bullet.pos.left < 0 or bullet.pos.top < 0 or bullet.pos.left > screen_width or bullet.pos.top > screen_height:
+					bullet.kill()
+			#楼梯更新
+			for floor in floor_group:
+				floor.sport()
+				screen.blit(floor.surf,floor.pos)
+			if pygame.sprite.spritecollideany(hero,floor_group):
+				sprite_rect = pygame.sprite.spritecollideany(hero,floor_group).rect
+				if sprite_rect.top - hero.pos.bottom == -1:
+					INFLOOR = 1
+					hero.pos.move_ip(0,0)
+					jump_time = 0
+					drop_time = 0
+					JUMP = 0
+			else:
+				INFLOOR = 0
+			#撞击判定
+			if pygame.sprite.spritecollideany(hero,enemy_group):
+				Bitcode = Bitcode - 1
+				hero.alive = False
+				if Bitcode <= 0: #未知执行
+					pass
+				elif Bitcode > 0:
+					hero.reborn(hero.alive)
+			#跳跃判定
+			if INFLOOR == 0 and jump_time == 0 and drop_time == 0 and JUMP == 0:
+				if hero.pos.bottom + 25 <= screen_height:
+					for _ in range(0,25):
+						if pygame.sprite.spritecollideany(hero,floor_group):
+							sprite_rect = pygame.sprite.spritecollideany(hero,floor_group).rect
+							if sprite_rect.top - hero.pos.bottom == -1:
+								INFLOOR = 1
+								hero.pos.move_ip(0,0)
+								jump_time = 0
+								drop_time = 0
+								JUMP = 0
+						else:
+							INFLOOR = 0
+						if INFLOOR == 1:
+							break
+						hero.pos.move_ip(0,1)
+				else:
+					pass
+			if hero.alive == True and jump_time > 0 and drop_time != 0 and JUMP == 1:
+				for _ in range(0,10):
+					if pygame.sprite.spritecollideany(hero,floor_group):
+						sprite_rect = pygame.sprite.spritecollideany(hero,floor_group).rect
+						if sprite_rect.top - hero.pos.bottom == -1:
+							INFLOOR = 1
+							hero.pos.move_ip(0,0)
+							jump_time = 0
+							drop_time = 0
+							JUMP = 0
+					else:
+						INFLOOR = 0
+					if INFLOOR == 1:
+						break
+					hero.pos.move_ip(0,-1)
+				jump_time = jump_time - 1
+			if hero.alive == True and drop_time > 0 and jump_time == 0 and JUMP == 1:
+				for _ in range(0,10):
+					if pygame.sprite.spritecollideany(hero,floor_group):
+						sprite_rect = pygame.sprite.spritecollideany(hero,floor_group).rect
+						if sprite_rect.top - hero.pos.bottom == -1:
+							INFLOOR = 1
+							hero.pos.move_ip(0,0)
+							jump_time = 0
+							drop_time = 0
+							JUMP = 0
+					else:
+						INFLOOR = 0
+					if INFLOOR == 1:
+						break
+					hero.pos.move_ip(0,1)
+				drop_time = drop_time - 1
+			if hero.alive == True and hero.pos.bottom >= screen_height:
+				JUMP = 0
+				jump_time = 0
+				drop_time = 0
+			#击打判定
+			if hero.equip == FIST:
+				Fist_time = Fist_time + 1
+				if Fist_time > 2:
+					hero.equip = NONE
+					Fist_time = 0
+		#开始界面入口
+		if Bitcode == 0:
+			screen.fill((255,255,255))
+			Start().sport()
+			condition.width01 = 0
+			if Music == -1:
+				Music = 0
+		#音乐播放入口
+		if Music == 0:
+			pygame.mixer.music.load("./Music/start.mp3")
+			pygame.mixer.music.play(-1)
+			Music = -2
+		elif Music == 1:
+			pygame.mixer.music.load("./Music/01.mp3")
+			pygame.mixer.music.play(-1)
+			Music = -1
+		#总系统相关
+		pygame.display.flip()
+		clock.tick(40) #维持40帧
+#退出
+pygame.quit()
+exit(0)
+
+#####################E      N      D##################################
+#  弃坑了，因为代码冗长未优化，让我自己都写不下去了。
+#  出现的问题难以解决，准备学完算法再做其他项目了。
+#  END TIME: 2018 - 10 - 17
+######################################################################
